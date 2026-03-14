@@ -34,19 +34,32 @@ def _download_full_zip_from_github():
                 os.remove(zip_path)
             except Exception:
                 pass
+
         use_bg = hasattr(xbmcgui, 'DialogProgressBG')
         if use_bg:
             pd = xbmcgui.DialogProgressBG()
-            pd.create('Telefix', 'מוריד מערך מלא מ-GitHub...')
+            pd.create('Telefix', 'מתחבר ל-GitHub...')
         else:
             pd = xbmcgui.DialogProgress()
-            pd.create('Telefix', 'מוריד מערך מלא מ-GitHub...')
+            pd.create('Telefix', 'מתחבר ל-GitHub...', 'הכנה...')
+
+        def _update_progress(percent, line1, line2='', line3=''):
+            if use_bg:
+                msg = line1
+                if line2:
+                    msg = line1 + ' | ' + line2
+                pd.update(percent, message=msg)
+            else:
+                pd.update(percent, line1, line2 or line3)
+
         try:
             req = urllib.request.Request(TELEFIX_FULL_ZIP_URL, headers={'User-Agent': 'Kodi/Telefix'})
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=120) as resp:
                 total = int(resp.headers.get('Content-Length', 0)) or 0
+                total_mb = total / (1024 * 1024) if total else 0
                 chunk_size = 1024 * 512
                 read = 0
+                _update_progress(0, 'מוריד מערך מלא...', '0 MB', 'הורדה מתחילה...')
                 with open(zip_path, 'wb') as f:
                     while True:
                         chunk = resp.read(chunk_size)
@@ -54,26 +67,30 @@ def _download_full_zip_from_github():
                             break
                         f.write(chunk)
                         read += len(chunk)
-                        if total and use_bg:
-                            pd.update(int(100 * read / total), message='%.1f MB' % (read / (1024 * 1024)))
+                        if total and total > 0:
+                            pct = min(100, int(100 * read / total))
+                            read_mb = read / (1024 * 1024)
+                            if total_mb >= 1:
+                                _update_progress(pct, 'מוריד מ-GitHub...', '%.1f / %.1f MB (%d%%)' % (read_mb, total_mb, pct), '')
+                            else:
+                                _update_progress(pct, 'מוריד...', '%d%%' % pct, '')
+                        else:
+                            _update_progress(0, 'מוריד...', '%.1f MB הורדו' % (read / (1024 * 1024)), '')
+                        if not use_bg and pd.iscanceled():
+                            return False
         except Exception as e:
             xbmc.log('Telefix download error: %s' % str(e), xbmc.LOGERROR)
-            if use_bg:
-                pd.close()
-            else:
-                pd.close()
-            return False
-        if use_bg:
-            pd.update(100, message='מחלץ...')
-        else:
             pd.close()
-            pd = xbmcgui.DialogProgress()
-            pd.create('Telefix', 'מחלץ...')
+            return False
+
+        _update_progress(0, 'מחלץ קבצים...', 'מעבד...', 'חילוץ מתחיל...')
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
-                for info in z.infolist():
+                infolist = [i for i in z.infolist() if i.filename.replace('\\', '/').rstrip('/') and not i.filename.startswith('__MACOSX')]
+                n_total = len(infolist)
+                for idx, info in enumerate(infolist):
                     path = info.filename.replace('\\', '/').rstrip('/')
-                    if not path or path.startswith('__MACOSX'):
+                    if not path:
                         continue
                     target = os.path.join(KODI_ADDONS, path)
                     if path.endswith('/'):
@@ -86,43 +103,68 @@ def _download_full_zip_from_github():
                         with z.open(info.filename) as src:
                             with open(target, 'wb') as dst:
                                 dst.write(src.read())
+                    if n_total > 0:
+                        pct = int(100 * (idx + 1) / n_total)
+                        _update_progress(pct, 'מחלץ...', 'קובץ %d מתוך %d (%d%%)' % (idx + 1, n_total, pct), '')
+                    if not use_bg and pd.iscanceled():
+                        pd.close()
+                        return False
         except Exception as e:
             xbmc.log('Telefix extract error: %s' % str(e), xbmc.LOGERROR)
-            if use_bg:
-                pd.close()
+            pd.close()
             return False
         try:
             os.remove(zip_path)
         except Exception:
             pass
-        if use_bg:
-            pd.close()
-        else:
-            pd.close()
+        _update_progress(100, 'הושלם!', 'המערך מוכן.', '')
+        xbmc.sleep(500)
+        pd.close()
         return True
     except Exception as e:
         xbmc.log('Telefix download_full_zip: %s' % str(e), xbmc.LOGERROR)
+        try:
+            pd.close()
+        except Exception:
+            pass
         return False
 
 
 def install_telefix_setup():
     """Install addons from resources/packages/*.zip into special://home/addons/"""
-    if not xbmcvfs.exists(PACKAGES_DIR):
-        if _download_full_zip_from_github():
-            xbmcgui.Dialog().ok('Telefix', 'המערך המלא הורד מ-GitHub.\n\nלחץ שוב על "Telefix Bingie Skin" להתקנת כל התוספים.')
+    pkg_dir = PACKAGES_DIR
+    if not xbmcvfs.exists(pkg_dir) and not os.path.exists(pkg_dir):
+        if not _download_full_zip_from_github():
+            xbmcgui.Dialog().ok('Telefix',
+                'לא נמצא מערך מקומי ולא ניתן להוריד מ-GitHub.\n\n'
+                'הוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
+            xbmc.executebuiltin('InstallFromZip')
             return
-        xbmcgui.Dialog().ok('Telefix',
-            'לא נמצא מערך מקומי ולא ניתן להוריד מ-GitHub.\n\n'
-            'הוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
-        xbmc.executebuiltin('InstallFromZip')
-        return
-    zips = [f for f in xbmcvfs.listdir(PACKAGES_DIR)[1] if f and f.lower().endswith('.zip')]
+        pkg_dir = os.path.join(KODI_ADDONS.rstrip('/').rstrip('\\'), 'plugin.program.telefix', 'resources', 'packages')
+        if not os.path.exists(pkg_dir):
+            pkg_dir = PACKAGES_DIR
+    zips = []
+    if xbmcvfs.exists(pkg_dir):
+        try:
+            zips = [f for f in xbmcvfs.listdir(pkg_dir)[1] if f and f.lower().endswith('.zip')]
+        except Exception:
+            pass
+    if not zips and os.path.exists(pkg_dir):
+        try:
+            zips = [f for f in os.listdir(pkg_dir) if f and f.lower().endswith('.zip')]
+        except Exception:
+            pass
     if not zips:
-        if _download_full_zip_from_github():
-            xbmcgui.Dialog().ok('Telefix', 'המערך המלא הורד מ-GitHub.\n\nלחץ שוב על "Telefix Bingie Skin" להתקנת כל התוספים.')
+        if not _download_full_zip_from_github():
+            xbmcgui.Dialog().ok('Telefix', 'אין קבצי zip בחבילות.\n\nהוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
+            xbmc.executebuiltin('InstallFromZip')
             return
-        xbmcgui.Dialog().ok('Telefix', 'אין קבצי zip בחבילות.\n\nהוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
-        xbmc.executebuiltin('InstallFromZip')
+        pkg_dir = os.path.join(KODI_ADDONS.rstrip('/').rstrip('\\'), 'plugin.program.telefix', 'resources', 'packages')
+        if not os.path.exists(pkg_dir):
+            pkg_dir = PACKAGES_DIR
+        zips = [f for f in os.listdir(pkg_dir) if f and f.lower().endswith('.zip')] if os.path.exists(pkg_dir) else []
+    if not zips:
+        xbmcgui.Dialog().ok('Telefix', 'לא נמצאו חבילות להתקנה.')
         return
     use_bg = hasattr(xbmcgui, 'DialogProgressBG')
     if use_bg:
@@ -132,12 +174,13 @@ def install_telefix_setup():
         pd = xbmcgui.DialogProgress()
         pd.create('Telefix', 'Installing...')
     total = len(zips)
+    pkg_dir_os = pkg_dir.replace('/', os.sep) if pkg_dir else PACKAGES_DIR
     for i, name in enumerate(zips):
         if use_bg:
             pd.update(int(100 * (i + 1) / total), message=name)
         else:
             pd.update(int(100 * (i + 1) / total), name)
-        zip_path = os.path.join(PACKAGES_DIR, name)
+        zip_path = os.path.join(pkg_dir_os, name)
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
                 names = z.namelist()
