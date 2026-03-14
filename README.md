@@ -44,12 +44,19 @@ To include the full set of addons in the wizard, close Kodi and run:
 
 Then run `build_zip.py` again. See `plugin.program.telefix/README.md` for details.
 
-## Full setup zip (default when no packages)
+## Build zip (Chameleon style – one zip, extract to Kodi HOME)
 
-When a user installs the wizard from the repo, "Telefix Bingie Skin" has no bundled packages. The wizard will **try to download the full setup from GitHub Releases**.
+The wizard downloads **one** zip and extracts it to Kodi HOME (like Chameleon). The zip must contain **addons/** at the root (so when extracted to `special://home` you get `addons/skin.bingie/`, etc.).
 
-1. **Build the full zip** (on PC, with Kodi closed): run `build_all_addons.ps1` then `build_zip.py` → you get `plugin.program.telefix.zip` (~160 MB).
-2. **Create a Release** on GitHub: Repo → Releases → Create new release → Tag `v1.0.0`, upload the zip as **telefix-full-setup.zip**.
-3. The wizard uses: `https://github.com/AlmogLach/telefix/releases/download/v1.0.0/telefix-full-setup.zip`
+1. **Build the build zip** (on PC, with Kodi closed):
+   ```bash
+   cd addons/plugin.program.telefix
+   python build_build_zip.py
+   ```
+   Output: `telefix-build.zip` in that folder (contains `addons/` with all addons except the wizard and repo).
 
-If the download fails (e.g. no release yet), the user sees instructions to add the source and use "Install from zip".
+2. **Upload to GitHub Releases**: Create release `v1.0.0`, upload **telefix-build.zip**.
+
+3. The wizard uses: `https://github.com/AlmogLach/telefix/releases/download/v1.0.0/telefix-build.zip`
+
+If the download fails, the user sees an error with instructions.
