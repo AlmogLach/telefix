@@ -101,11 +101,14 @@ def _download_full_zip_from_github():
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
                 infolist = [i for i in z.infolist() if i.filename.replace('\\', '/').rstrip('/') and not i.filename.startswith('__MACOSX')]
+                # Skip the wizard addon itself (already installed and running)
+                infolist = [i for i in infolist if not i.filename.replace('\\', '/').startswith('plugin.program.telefix/')]
                 n_total = len(infolist)
                 for idx, info in enumerate(infolist):
                     path = info.filename.replace('\\', '/').rstrip('/')
                     if not path:
                         continue
+                    xbmc.sleep(0)  # Keep Kodi alive during long extraction
                     target = os.path.join(KODI_ADDONS, path)
                     if path.endswith('/'):
                         if not os.path.exists(target):
@@ -116,7 +119,12 @@ def _download_full_zip_from_github():
                             os.makedirs(target_dir, exist_ok=True)
                         with z.open(info.filename) as src:
                             with open(target, 'wb') as dst:
-                                dst.write(src.read())
+                                chunk_size = 1024 * 256
+                                while True:
+                                    chunk = src.read(chunk_size)
+                                    if not chunk:
+                                        break
+                                    dst.write(chunk)
                     if n_total > 0:
                         pct = int(100 * (idx + 1) / n_total)
                         _update_progress(pct, 'מחלץ...', 'קובץ %d מתוך %d (%d%%)' % (idx + 1, n_total, pct), '')
