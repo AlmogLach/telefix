@@ -8,9 +8,12 @@ import xbmcgui
 import xbmcvfs
 import xbmcaddon
 
+# Default: full setup zip from GitHub Releases (upload via Releases page)
+TELEFIX_FULL_ZIP_URL = 'https://github.com/AlmogLach/telefix/releases/download/v1.0.0/telefix-full-setup.zip'
+
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = ADDON.getAddonInfo('path')
-if ADDON_PATH.startswith('special://'):
+if ADDON_PATH and ADDON_PATH.startswith('special://'):
     ADDON_PATH = xbmcvfs.translatePath(ADDON_PATH)
 PACKAGES_DIR = os.path.join(ADDON_PATH, 'resources', 'packages')
 KODI_ADDONS = xbmcvfs.translatePath('special://home/addons/')
@@ -20,24 +23,105 @@ def _progress_dialog(heading, line1=''):
     return xbmcgui.DialogProgressBG() if hasattr(xbmcgui, 'DialogProgressBG') else xbmcgui.DialogProgress()
 
 
+def _download_full_zip_from_github():
+    """Download full setup zip from GitHub and extract to addons. Returns True on success."""
+    try:
+        import urllib.request
+        temp_dir = xbmcvfs.translatePath('special://temp/')
+        zip_path = os.path.join(temp_dir, 'telefix_full_setup.zip')
+        if os.path.exists(zip_path):
+            try:
+                os.remove(zip_path)
+            except Exception:
+                pass
+        use_bg = hasattr(xbmcgui, 'DialogProgressBG')
+        if use_bg:
+            pd = xbmcgui.DialogProgressBG()
+            pd.create('Telefix', 'מוריד מערך מלא מ-GitHub...')
+        else:
+            pd = xbmcgui.DialogProgress()
+            pd.create('Telefix', 'מוריד מערך מלא מ-GitHub...')
+        try:
+            req = urllib.request.Request(TELEFIX_FULL_ZIP_URL, headers={'User-Agent': 'Kodi/Telefix'})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                total = int(resp.headers.get('Content-Length', 0)) or 0
+                chunk_size = 1024 * 512
+                read = 0
+                with open(zip_path, 'wb') as f:
+                    while True:
+                        chunk = resp.read(chunk_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        read += len(chunk)
+                        if total and use_bg:
+                            pd.update(int(100 * read / total), message='%.1f MB' % (read / (1024 * 1024)))
+        except Exception as e:
+            xbmc.log('Telefix download error: %s' % str(e), xbmc.LOGERROR)
+            if use_bg:
+                pd.close()
+            else:
+                pd.close()
+            return False
+        if use_bg:
+            pd.update(100, message='מחלץ...')
+        else:
+            pd.close()
+            pd = xbmcgui.DialogProgress()
+            pd.create('Telefix', 'מחלץ...')
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as z:
+                for info in z.infolist():
+                    path = info.filename.replace('\\', '/').rstrip('/')
+                    if not path or path.startswith('__MACOSX'):
+                        continue
+                    target = os.path.join(KODI_ADDONS, path)
+                    if path.endswith('/'):
+                        if not os.path.exists(target):
+                            os.makedirs(target, exist_ok=True)
+                    else:
+                        target_dir = os.path.dirname(target)
+                        if target_dir and not os.path.exists(target_dir):
+                            os.makedirs(target_dir, exist_ok=True)
+                        with z.open(info.filename) as src:
+                            with open(target, 'wb') as dst:
+                                dst.write(src.read())
+        except Exception as e:
+            xbmc.log('Telefix extract error: %s' % str(e), xbmc.LOGERROR)
+            if use_bg:
+                pd.close()
+            return False
+        try:
+            os.remove(zip_path)
+        except Exception:
+            pass
+        if use_bg:
+            pd.close()
+        else:
+            pd.close()
+        return True
+    except Exception as e:
+        xbmc.log('Telefix download_full_zip: %s' % str(e), xbmc.LOGERROR)
+        return False
+
+
 def install_telefix_setup():
     """Install addons from resources/packages/*.zip into special://home/addons/"""
     if not xbmcvfs.exists(PACKAGES_DIR):
+        if _download_full_zip_from_github():
+            xbmcgui.Dialog().ok('Telefix', 'המערך המלא הורד מ-GitHub.\n\nלחץ שוב על "Telefix Bingie Skin" להתקנת כל התוספים.')
+            return
         xbmcgui.Dialog().ok('Telefix',
-            'המערך המלא לא כלול בהתקנה זו.\n\n'
-            'להתקנת הכל: הוסף בהגדרות קבצים מקור:\n'
-            'https://almoglach.github.io/telefix/\n\n'
-            'אחר כך לחץ "התקן מקובץ zip" ובחר את הקובץ repository.telefix.zip או את קובץ ה-zip המלא.\n\n'
-            'Full setup not bundled. Add source in File Manager, then use Install from zip.')
+            'לא נמצא מערך מקומי ולא ניתן להוריד מ-GitHub.\n\n'
+            'הוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
         xbmc.executebuiltin('InstallFromZip')
         return
     zips = [f for f in xbmcvfs.listdir(PACKAGES_DIR)[1] if f and f.lower().endswith('.zip')]
     if not zips:
-        xbmcgui.Dialog().ok('Telefix',
-            'אין קבצי zip בתיקיית החבילות.\n\n'
-            'הוסף מקור בהגדרות קבצים: https://almoglach.github.io/telefix/\n'
-            'ולחץ "התקן מקובץ zip" לבחירת הקובץ.\n\n'
-            'No zip files in packages. Add source and use Install from zip.')
+        if _download_full_zip_from_github():
+            xbmcgui.Dialog().ok('Telefix', 'המערך המלא הורד מ-GitHub.\n\nלחץ שוב על "Telefix Bingie Skin" להתקנת כל התוספים.')
+            return
+        xbmcgui.Dialog().ok('Telefix', 'אין קבצי zip בחבילות.\n\nהוסף מקור: https://almoglach.github.io/telefix/\nולחץ "התקן מקובץ zip".')
         xbmc.executebuiltin('InstallFromZip')
         return
     use_bg = hasattr(xbmcgui, 'DialogProgressBG')
@@ -56,14 +140,9 @@ def install_telefix_setup():
         zip_path = os.path.join(PACKAGES_DIR, name)
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
-                # Expect zip root = single addon folder (e.g. skin.bingie/)
                 names = z.namelist()
                 if not names:
                     continue
-                root = names[0].split('/')[0].split('\\')[0]
-                if not root or root == name.replace('.zip', ''):
-                    # Some zips have addon id as root folder
-                    pass
                 for info in z.infolist():
                     path = info.filename.replace('\\', '/').rstrip('/')
                     if not path:
@@ -95,7 +174,6 @@ def install_telefix_setup():
 
 
 def _mkdirs(path):
-    """Create directory and parents using xbmcvfs."""
     path = path.rstrip('/').rstrip('\\')
     if not path or xbmcvfs.exists(path):
         return
