@@ -126,7 +126,7 @@ def main():
 
     # Main menu
     xbmcplugin.setContent(handle, 'files')
-    _add_item(_L(30001), 'install')
+    _add_item(_L(30016), 'install')  # Telefix Bingie Skin - installs full setup (skin + all addons)
     _add_item(_L(30015), 'installfromzip')
     _add_item(_L(30003), 'maint', is_folder=True)
     _add_item(_L(30002), 'settings')

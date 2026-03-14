@@ -64,3 +64,7 @@ msgstr "Clear thumbnails on startup"
 msgctxt "#30015"
 msgid "Install from zip file"
 msgstr "Install from zip file"
+
+msgctxt "#30016"
+msgid "Telefix Bingie Skin"
+msgstr "Telefix Bingie Skin"

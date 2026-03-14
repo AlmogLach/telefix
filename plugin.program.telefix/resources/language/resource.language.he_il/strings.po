@@ -64,3 +64,7 @@ msgstr "נקה תמונות בהפעלה"
 msgctxt "#30015"
 msgid "Install from zip file"
 msgstr "התקן מקובץ zip"
+
+msgctxt "#30016"
+msgid "Telefix Bingie Skin"
+msgstr "Telefix Bingie Skin"
