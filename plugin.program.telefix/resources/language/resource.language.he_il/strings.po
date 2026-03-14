@@ -1,4 +1,10 @@
 # Telefix Wizard - Hebrew
+msgid ""
+msgstr ""
+"Project-Id-Version: Telefix Wizard\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: he\n"
+
 msgctxt "#30001"
 msgid "Install Telefix setup (Bingie + Mando + Telemedia)"
 msgstr "התקנת מערך Telefix (Bingie + Mando + Telemedia)"
