@@ -115,8 +115,8 @@ def main():
         xbmc.executebuiltin('Container.Refresh()')
         return
     if mode == 'installfromzip':
-        # Open Kodi Add-on browser (user can then choose "Install from zip file")
-        xbmc.executebuiltin('ActivateWindow(AddonBrowser)')
+        # Open Kodi "Install from zip file" dialog
+        xbmc.executebuiltin('InstallFromZip')
         return
 
     # Menus
