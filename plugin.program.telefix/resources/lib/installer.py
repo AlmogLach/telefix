@@ -188,25 +188,37 @@ def install_telefix_setup():
                     continue
                 for info in z.infolist():
                     path = info.filename.replace('\\', '/').rstrip('/')
-                    if not path:
+                    if not path or path.startswith('__MACOSX'):
                         continue
                     target_path = os.path.join(KODI_ADDONS, path)
                     target_dir = os.path.dirname(target_path)
+                    if path.endswith('/'):
+                        dir_to_make = target_path.rstrip('/').rstrip('\\')
+                        if dir_to_make and not xbmcvfs.exists(dir_to_make):
+                            _mkdirs(dir_to_make)
+                        continue
                     if target_dir and not xbmcvfs.exists(target_dir):
                         _mkdirs(target_dir)
-                    data = z.read(info.filename)
-                    if isinstance(data, str):
-                        data = data.encode('utf-8')
-                    f = xbmcvfs.File(target_path, 'wb')
-                    f.write(data)
-                    f.close()
+                    chunk_size = 1024 * 256
+                    with z.open(info.filename) as src:
+                        f = xbmcvfs.File(target_path, 'wb')
+                        try:
+                            while True:
+                                chunk = src.read(chunk_size)
+                                if not chunk:
+                                    break
+                                if isinstance(chunk, str):
+                                    chunk = chunk.encode('utf-8')
+                                f.write(chunk)
+                        finally:
+                            f.close()
         except Exception as e:
             xbmc.log('Telefix installer error %s: %s' % (name, str(e)), xbmc.LOGERROR)
             if use_bg:
                 pd.close()
             else:
                 pd.close()
-            xbmcgui.Dialog().ok('Telefix', 'Error installing %s:\n%s' % (name, str(e)))
+            xbmcgui.Dialog().ok('Telefix', 'שגיאה בהתקנת %s:\n%s' % (name, str(e)))
             return
     if use_bg:
         pd.close()
