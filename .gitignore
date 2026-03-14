@@ -1,6 +1,8 @@
 # Build output
 plugin.program.telefix/repo_output/
 *.zip
+# Repo addon zips (for GitHub Pages) - keep these
+!zips/
 
 # Large package zips – re-run build_all_addons.ps1 after clone
 plugin.program.telefix/resources/packages/*.zip
