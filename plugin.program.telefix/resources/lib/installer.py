@@ -205,11 +205,18 @@ def install_telefix_setup():
             pd.update(int(100 * (i + 1) / total), message=name)
         else:
             pd.update(int(100 * (i + 1) / total), name)
+        xbmc.sleep(0)
         zip_path = os.path.join(pkg_dir_os, name)
         try:
             with zipfile.ZipFile(zip_path, 'r') as z:
                 names = z.namelist()
                 if not names:
+                    continue
+                # Detect addon_id from zip top-level folder
+                addon_id = names[0].replace('\\', '/').split('/')[0] if names else ''
+                # Skip if this addon is already installed (avoid overwriting running addons)
+                if addon_id and os.path.exists(os.path.join(os.path.normpath(KODI_ADDONS), addon_id, 'addon.xml')):
+                    xbmc.log('Telefix: skipping already-installed %s' % addon_id, xbmc.LOGINFO)
                     continue
                 for info in z.infolist():
                     path = info.filename.replace('\\', '/').rstrip('/')
@@ -219,32 +226,22 @@ def install_telefix_setup():
                     target_dir = os.path.dirname(target_path)
                     if path.endswith('/'):
                         dir_to_make = target_path.rstrip('/').rstrip('\\')
-                        if dir_to_make and not xbmcvfs.exists(dir_to_make):
-                            _mkdirs(dir_to_make)
+                        if dir_to_make and not os.path.exists(dir_to_make):
+                            os.makedirs(dir_to_make, exist_ok=True)
                         continue
-                    if target_dir and not xbmcvfs.exists(target_dir):
-                        _mkdirs(target_dir)
+                    if target_dir and not os.path.exists(target_dir):
+                        os.makedirs(target_dir, exist_ok=True)
                     chunk_size = 1024 * 256
                     with z.open(info.filename) as src:
-                        f = xbmcvfs.File(target_path, 'wb')
-                        try:
+                        with open(target_path, 'wb') as dst:
                             while True:
                                 chunk = src.read(chunk_size)
                                 if not chunk:
                                     break
-                                if isinstance(chunk, str):
-                                    chunk = chunk.encode('utf-8')
-                                f.write(chunk)
-                        finally:
-                            f.close()
+                                dst.write(chunk)
         except Exception as e:
             xbmc.log('Telefix installer error %s: %s' % (name, str(e)), xbmc.LOGERROR)
-            if use_bg:
-                pd.close()
-            else:
-                pd.close()
-            xbmcgui.Dialog().ok('Telefix', 'שגיאה בהתקנת %s:\n%s' % (name, str(e)))
-            return
+            # Log and continue — don't stop entire install for one failed addon
     if use_bg:
         pd.close()
     else:
