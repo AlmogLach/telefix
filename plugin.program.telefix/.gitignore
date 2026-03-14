@@ -1,0 +1,6 @@
+# Build output
+repo_output/
+plugin.program.telefix.zip
+
+# Large package zips - re-run build_all_addons.ps1 after clone
+resources/packages/*.zip

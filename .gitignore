@@ -1,0 +1,14 @@
+# Build output
+plugin.program.telefix/repo_output/
+*.zip
+
+# Large package zips – re-run build_all_addons.ps1 after clone
+plugin.program.telefix/resources/packages/*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

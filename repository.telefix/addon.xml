@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="repository.telefix" name="[COLOR lime]Telefix[/COLOR] Repository" version="1.0.0" provider-name="Telefix">
+    <extension point="xbmc.addon.repository" name="Telefix repo">
+        <dir>
+            <info compressed="false">https://almoglach.github.io/telefix/addons.xml</info>
+            <checksum>https://almoglach.github.io/telefix/addons.xml.md5</checksum>
+            <datadir zip="true">https://almoglach.github.io/telefix/zips</datadir>
+        </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Telefix Wizard repository - install from GitHub</summary>
+        <description>Repository for Telefix Wizard. Add this repo then install Telefix Wizard from Add-ons.</description>
+        <platform>all</platform>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
+</addon>

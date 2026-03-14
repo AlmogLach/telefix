@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.program.telefix" name="[COLOR lime]Telefix[/COLOR] Wizard" version="1.0.0" provider-name="Telefix">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.service" library="service.py" start="start"/>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Telefix Wizard - Install Bingie + Mando + Telemedia setup</summary>
+        <description lang="en">One-click install of the Telefix setup: Bingie skin with Play buttons opening Mando/Telemedia, and the configured addons.</description>
+        <platform>all</platform>
+        <reuselanguageinvoker>false</reuselanguageinvoker>
+        <assets>
+            <icon>icon.png</icon>
+            <fanart>fanart.jpg</fanart>
+        </assets>
+        <settings>
+            <setting id="autoclean" type="bool" label="30011" default="false"/>
+            <setting id="clearcache" type="bool" label="30012" default="false" enable="!eq(-1,false)"/>
+            <setting id="clearpackages" type="bool" label="30013" default="false" enable="!eq(-2,false)"/>
+            <setting id="clearthumbs" type="bool" label="30014" default="false" enable="!eq(-3,false)"/>
+        </settings>
+    </extension>
+</addon>

@@ -1,0 +1,56 @@
+# Telefix Wizard - Hebrew
+msgctxt "#30001"
+msgid "Install Telefix setup (Bingie + Mando + Telemedia)"
+msgstr "התקנת מערך Telefix (Bingie + Mando + Telemedia)"
+
+msgctxt "#30002"
+msgid "Settings"
+msgstr "הגדרות"
+
+msgctxt "#30003"
+msgid "Maintenance"
+msgstr "תחזוקה"
+
+msgctxt "#30004"
+msgid "Clear cache"
+msgstr "ניקוי מטמון"
+
+msgctxt "#30005"
+msgid "Clear packages"
+msgstr "ניקוי חבילות"
+
+msgctxt "#30006"
+msgid "Clear thumbnails"
+msgstr "ניקוי תמונות ממוזערות"
+
+msgctxt "#30007"
+msgid "Total cleanup (cache + packages + thumbnails)"
+msgstr "ניקוי מלא (מטמון + חבילות + תמונות)"
+
+msgctxt "#30008"
+msgid "Clear crash logs"
+msgstr "ניקוי קבצי לוג/שגיאות"
+
+msgctxt "#30009"
+msgid "Auto-clean on startup: %s"
+msgstr "ניקוי אוטומטי בהפעלה: %s"
+
+msgctxt "#30010"
+msgid "Auto-clean on startup"
+msgstr "ניקוי אוטומטי בהפעלה"
+
+msgctxt "#30011"
+msgid "Enable auto-clean"
+msgstr "הפעל ניקוי אוטומטי"
+
+msgctxt "#30012"
+msgid "Clear cache on startup"
+msgstr "נקה מטמון בהפעלה"
+
+msgctxt "#30013"
+msgid "Clear packages on startup"
+msgstr "נקה חבילות בהפעלה"
+
+msgctxt "#30014"
+msgid "Clear thumbnails on startup"
+msgstr "נקה תמונות בהפעלה"
