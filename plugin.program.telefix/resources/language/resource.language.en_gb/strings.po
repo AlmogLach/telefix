@@ -60,3 +60,7 @@ msgstr "Clear packages on startup"
 msgctxt "#30014"
 msgid "Clear thumbnails on startup"
 msgstr "Clear thumbnails on startup"
+
+msgctxt "#30015"
+msgid "Install from zip file"
+msgstr "Install from zip file"

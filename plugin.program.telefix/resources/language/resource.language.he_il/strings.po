@@ -60,3 +60,7 @@ msgstr "נקה חבילות בהפעלה"
 msgctxt "#30014"
 msgid "Clear thumbnails on startup"
 msgstr "נקה תמונות בהפעלה"
+
+msgctxt "#30015"
+msgid "Install from zip file"
+msgstr "התקן מקובץ zip"

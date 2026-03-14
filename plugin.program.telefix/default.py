@@ -114,6 +114,10 @@ def main():
         config.set_setting('autoclean', 'false' if cur == 'true' else 'true')
         xbmc.executebuiltin('Container.Refresh()')
         return
+    if mode == 'installfromzip':
+        # Open Kodi Add-on browser (user can then choose "Install from zip file")
+        xbmc.executebuiltin('ActivateWindow(AddonBrowser)')
+        return
 
     # Menus
     if mode == 'maint':
@@ -123,6 +127,7 @@ def main():
     # Main menu
     xbmcplugin.setContent(handle, 'files')
     _add_item(_L(30001), 'install')
+    _add_item(_L(30015), 'installfromzip')
     _add_item(_L(30003), 'maint', is_folder=True)
     _add_item(_L(30002), 'settings')
     xbmcplugin.endOfDirectory(handle)
