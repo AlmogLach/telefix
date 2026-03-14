@@ -15,7 +15,21 @@ ADDON = xbmcaddon.Addon()
 ADDON_PATH = ADDON.getAddonInfo('path')
 if ADDON_PATH and ADDON_PATH.startswith('special://'):
     ADDON_PATH = xbmcvfs.translatePath(ADDON_PATH)
+if ADDON_PATH:
+    ADDON_PATH = os.path.normpath(ADDON_PATH.rstrip('/').rstrip('\\'))
+if not ADDON_PATH or not xbmcvfs.exists(ADDON_PATH):
+    _special = xbmcvfs.translatePath('special://home/addons/plugin.program.telefix')
+    if _special:
+        ADDON_PATH = os.path.normpath(_special.rstrip('/').rstrip('\\'))
+if not ADDON_PATH or not xbmcvfs.exists(ADDON_PATH):
+    try:
+        _script = os.path.normpath(os.path.abspath(__file__))
+        if 'plugin.program.telefix' in _script.replace('\\', '/'):
+            ADDON_PATH = os.path.normpath(_script.split('plugin.program.telefix')[0] + 'plugin.program.telefix')
+    except Exception:
+        pass
 PACKAGES_DIR = os.path.join(ADDON_PATH, 'resources', 'packages')
+PACKAGES_DIR_VFS = PACKAGES_DIR.replace('\\', '/')
 KODI_ADDONS = xbmcvfs.translatePath('special://home/addons/')
 
 
@@ -132,8 +146,12 @@ def _download_full_zip_from_github():
 
 def install_telefix_setup():
     """Install addons from resources/packages/*.zip into special://home/addons/"""
-    pkg_dir = PACKAGES_DIR
-    if not xbmcvfs.exists(pkg_dir) and not os.path.exists(pkg_dir):
+    pkg_dir = PACKAGES_DIR_VFS if xbmcvfs.exists(PACKAGES_DIR_VFS) else PACKAGES_DIR
+    if not xbmcvfs.exists(pkg_dir):
+        pkg_dir = PACKAGES_DIR
+    if not xbmcvfs.exists(pkg_dir):
+        pkg_dir = None
+    if pkg_dir is None or not xbmcvfs.exists(pkg_dir):
         if not _download_full_zip_from_github():
             xbmcgui.Dialog().ok('Telefix',
                 'לא נמצא מערך מקומי ולא ניתן להוריד מ-GitHub.\n\n'
