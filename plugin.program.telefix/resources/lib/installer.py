@@ -154,12 +154,11 @@ def _download_full_zip_from_github():
 
 def install_telefix_setup():
     """Install addons from resources/packages/*.zip into special://home/addons/"""
-    pkg_dir = PACKAGES_DIR_VFS if xbmcvfs.exists(PACKAGES_DIR_VFS) else PACKAGES_DIR
-    if not xbmcvfs.exists(pkg_dir):
-        pkg_dir = PACKAGES_DIR
-    if not xbmcvfs.exists(pkg_dir):
-        pkg_dir = None
-    if pkg_dir is None or not xbmcvfs.exists(pkg_dir):
+    # Use os.path.exists as primary check (xbmcvfs.exists unreliable on Windows paths)
+    pkg_dir = PACKAGES_DIR if os.path.exists(PACKAGES_DIR) else None
+    if pkg_dir is None:
+        pkg_dir = PACKAGES_DIR_VFS if xbmcvfs.exists(PACKAGES_DIR_VFS) else None
+    if pkg_dir is None:
         if not _download_full_zip_from_github():
             xbmcgui.Dialog().ok('Telefix',
                 'לא נמצא מערך מקומי ולא ניתן להוריד מ-GitHub.\n\n'
