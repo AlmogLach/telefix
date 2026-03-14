@@ -23,11 +23,22 @@ def _progress_dialog(heading, line1=''):
 def install_telefix_setup():
     """Install addons from resources/packages/*.zip into special://home/addons/"""
     if not xbmcvfs.exists(PACKAGES_DIR):
-        xbmcgui.Dialog().ok('Telefix', 'Packages folder not found. Put addon zips in resources/packages/')
+        xbmcgui.Dialog().ok('Telefix',
+            'המערך המלא לא כלול בהתקנה זו.\n\n'
+            'להתקנת הכל: הוסף בהגדרות קבצים מקור:\n'
+            'https://almoglach.github.io/telefix/\n\n'
+            'אחר כך לחץ "התקן מקובץ zip" ובחר את הקובץ repository.telefix.zip או את קובץ ה-zip המלא.\n\n'
+            'Full setup not bundled. Add source in File Manager, then use Install from zip.')
+        xbmc.executebuiltin('InstallFromZip')
         return
     zips = [f for f in xbmcvfs.listdir(PACKAGES_DIR)[1] if f and f.lower().endswith('.zip')]
     if not zips:
-        xbmcgui.Dialog().ok('Telefix', 'No zip files in resources/packages/.\n\nPut addon .zip files there (each zip root = addon folder, e.g. skin.bingie/addon.xml).')
+        xbmcgui.Dialog().ok('Telefix',
+            'אין קבצי zip בתיקיית החבילות.\n\n'
+            'הוסף מקור בהגדרות קבצים: https://almoglach.github.io/telefix/\n'
+            'ולחץ "התקן מקובץ zip" לבחירת הקובץ.\n\n'
+            'No zip files in packages. Add source and use Install from zip.')
+        xbmc.executebuiltin('InstallFromZip')
         return
     use_bg = hasattr(xbmcgui, 'DialogProgressBG')
     if use_bg:
